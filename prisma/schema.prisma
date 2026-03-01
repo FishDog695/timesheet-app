@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// For production (PostgreSQL):
+//   1. Change provider to "postgresql"
+//   2. Change DATABASE_URL to postgresql://...
+//   3. Add back: enum Role { ADMINISTRATOR FOREMAN EMPLOYEE ACCOUNTING }
+//      and replace role String with role Role @default(EMPLOYEE)
+//   4. Add @db.Decimal(10,4) to User rate fields
+//   5. Add @db.Decimal(5,2) to TimeEntry hour fields
+//   6. Add @db.Date to TimeEntry.date
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(cuid())
+  name         String
+  email        String  @unique
+  passwordHash String  @map("password_hash")
+  // Role is stored as string: ADMINISTRATOR | FOREMAN | EMPLOYEE | ACCOUNTING
+  role        String   @default("EMPLOYEE")
+  isActive    Boolean  @default(true) @map("is_active")
+  hourlyRate  Decimal  @default(0) @map("hourly_rate")
+  driveRate   Decimal  @default(0) @map("drive_rate")
+  perDiemRate Decimal  @default(0) @map("per_diem_rate")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  timeEntries TimeEntry[]
+
+  @@map("users")
+}
+
+model Week {
+  id         String    @id // ISO Sunday date: "2025-03-02"
+  isClosed   Boolean   @default(false) @map("is_closed")
+  closedAt   DateTime? @map("closed_at")
+  closedById String?   @map("closed_by_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  timeEntries TimeEntry[]
+
+  @@map("weeks")
+}
+
+model TimeEntry {
+  id           String   @id @default(cuid())
+  weekId       String   @map("week_id")
+  userId       String   @map("user_id")
+  date         DateTime // calendar day
+  regularHours Decimal  @default(0) @map("regular_hours")
+  driveHours   Decimal  @default(0) @map("drive_hours")
+  perDiem      Boolean  @default(false) @map("per_diem")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  week Week @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([weekId, userId, date])
+  @@index([weekId, userId])
+  @@map("time_entries")
+}
