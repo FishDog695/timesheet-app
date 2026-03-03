@@ -43,6 +43,16 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    href: "/documents",
+    label: "Documents",
+    roles: ["EMPLOYEE", "FOREMAN", "ADMINISTRATOR", "ACCOUNTING"],
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
     href: "/admin",
     label: "Admin",
     roles: ["ADMINISTRATOR"],
@@ -70,7 +80,7 @@ export function Sidebar({ userRole, userName }: SidebarProps) {
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 bg-gray-900 min-h-screen">
       <div className="flex items-center h-16 px-6 border-b border-gray-700">
-        <span className="text-white font-bold text-lg">Timesheet</span>
+        <span className="text-white font-bold text-lg">The Lightning Doctor LLC Employee Portal</span>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

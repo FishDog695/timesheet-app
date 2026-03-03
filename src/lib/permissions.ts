@@ -51,3 +51,7 @@ export function canViewAllEntries(role: Role): boolean {
     role === "FOREMAN"
   );
 }
+
+export function canManageDocuments(role: Role): boolean {
+  return role === "ACCOUNTING" || role === "ADMINISTRATOR";
+}

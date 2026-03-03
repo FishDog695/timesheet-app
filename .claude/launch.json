@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "timesheet-app",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "prisma-studio",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["node_modules/prisma/build/index.js", "studio"],
+      "port": 5555
+    }
+  ]
+}

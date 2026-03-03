@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { TimesheetGrid } from "@/components/timesheet/TimesheetGrid";
 import { MobileEmployeeCard } from "@/components/timesheet/MobileEmployeeCard";
 import { Button } from "@/components/ui/Button";
+import { DAY_LABELS } from "@/lib/date-utils";
 
 interface DayEntry {
   regularHours: number;
@@ -60,6 +61,41 @@ export function AccountingWeekClient({
     }
   };
 
+  const handleExport = (entries: Record<string, DayEntry[]>) => {
+    const headers = ["Employee"];
+    parsedDays.forEach((day, i) => {
+      const label = `${DAY_LABELS[i]} ${format(day, "M/d")}`;
+      headers.push(`${label} Reg`, `${label} Drive`);
+    });
+    headers.push("Total Reg", "Total Drive", "Per Diem Days");
+
+    const rows = employees.map((emp) => {
+      const empEntries = entries[emp.id] ?? [];
+      const row: (string | number)[] = [emp.name];
+      let totalReg = 0, totalDrive = 0, perDiemDays = 0;
+      empEntries.forEach((entry) => {
+        row.push(entry.regularHours, entry.driveHours);
+        totalReg += entry.regularHours;
+        totalDrive += entry.driveHours;
+        if ((entry.regularHours + entry.driveHours) > 0) perDiemDays++;
+      });
+      row.push(totalReg, totalDrive, perDiemDays);
+      return row;
+    });
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `timesheet-${weekId}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleToggleClose = () => {
     setActionError(null);
     startToggle(async () => {
@@ -112,6 +148,7 @@ export function AccountingWeekClient({
           readOnly={false}
           onSave={handleSave}
           saveLabel="Save Timesheet"
+          onExport={handleExport}
         />
       </div>
 

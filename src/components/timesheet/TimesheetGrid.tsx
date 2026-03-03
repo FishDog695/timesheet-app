@@ -28,6 +28,7 @@ interface TimesheetGridProps {
   readOnly?: boolean;
   onSave?: (entries: EntriesMap) => Promise<void>;
   saveLabel?: string;
+  onExport?: (entries: EntriesMap) => void;
 }
 
 function buildDefaultEntries(employees: Employee[]): EntriesMap {
@@ -50,6 +51,7 @@ export function TimesheetGrid({
   readOnly = false,
   onSave,
   saveLabel = "Save Timesheet",
+  onExport,
 }: TimesheetGridProps) {
   const weekDays = getWeekDays(weekId);
   const defaultEntries = buildDefaultEntries(employees);
@@ -126,7 +128,7 @@ export function TimesheetGrid({
               {weekDays.map((day, i) => (
                 <th
                   key={i}
-                  className="px-2 py-3 text-center font-semibold text-gray-700 min-w-[80px]"
+                  className="px-2 py-3 text-center font-semibold text-gray-700 min-w-[100px]"
                 >
                   <div>{DAY_LABELS[i]}</div>
                   <div className="text-xs font-normal text-gray-500">
@@ -164,11 +166,18 @@ export function TimesheetGrid({
       </div>
 
       {/* Save controls */}
-      {!readOnly && onSave && (
+      {!readOnly && (onSave || onExport) && (
         <div className="flex items-center gap-4">
-          <Button onClick={handleSave} disabled={isPending} loading={isPending}>
-            {saveLabel}
-          </Button>
+          {onSave && (
+            <Button onClick={handleSave} disabled={isPending} loading={isPending}>
+              {saveLabel}
+            </Button>
+          )}
+          {onExport && (
+            <Button variant="secondary" onClick={() => onExport(entries)}>
+              Export Timesheet
+            </Button>
+          )}
           {saveSuccess && (
             <span className="text-sm text-green-600">Saved successfully!</span>
           )}

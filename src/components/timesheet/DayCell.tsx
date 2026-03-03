@@ -25,10 +25,10 @@ export function DayCell({ entry, onChange, readOnly = false }: DayCellProps) {
   };
 
   const inputClass =
-    "w-14 text-center text-sm rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500 py-1 px-1 disabled:bg-gray-100 disabled:text-gray-400";
+    "w-11 text-center text-sm rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500 py-1 px-1 disabled:bg-gray-100 disabled:text-gray-400";
 
   return (
-    <div className="flex flex-col gap-0.5 items-center">
+    <div className="flex flex-row gap-1 items-center">
       <input
         type="number"
         inputMode="decimal"

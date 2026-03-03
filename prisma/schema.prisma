@@ -33,6 +33,7 @@ model User {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   timeEntries TimeEntry[]
+  documents   Document[]
 
   @@map("users")
 }
@@ -48,6 +49,19 @@ model Week {
   timeEntries TimeEntry[]
 
   @@map("weeks")
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  fileName     String   @map("file_name")     // uuid-based name on disk
+  originalName String   @map("original_name") // display name
+  mimeType     String   @map("mime_type")
+  fileSize     Int      @map("file_size")
+  uploadedById String   @map("uploaded_by_id")
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+
+  @@map("documents")
 }
 
 model TimeEntry {
