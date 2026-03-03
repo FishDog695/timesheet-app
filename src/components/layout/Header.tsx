@@ -14,7 +14,7 @@ export function Header({ weekLabel, userName }: HeaderProps) {
       <div className="flex items-center gap-4">
         {/* Mobile logo */}
         <span className="lg:hidden font-bold text-gray-900 text-lg">
-          Timesheet
+          The Lightning Doctor LLC Employee Portal
         </span>
         {weekLabel && (
           <span className="hidden sm:block text-sm text-gray-600">

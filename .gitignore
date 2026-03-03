@@ -45,3 +45,6 @@ prisma/*.db-shm
 
 # docker volumes
 postgres_data/
+
+# uploaded files (runtime storage)
+/uploads/

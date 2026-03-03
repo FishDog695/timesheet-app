@@ -40,7 +40,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Timesheet</h1>
+          <h1 className="text-3xl font-bold text-gray-900">The Lightning Doctor LLC Employee Portal</h1>
           <p className="mt-2 text-gray-600 text-sm">Sign in to your account</p>
         </div>
 
