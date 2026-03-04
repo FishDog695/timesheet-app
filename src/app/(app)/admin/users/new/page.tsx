@@ -1,12 +1,14 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { UserForm } from "@/components/admin/UserForm";
+import { canManageUsers } from "@/lib/permissions";
+import type { Role } from "@/types";
 
 export default async function NewUserPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  if (session.user.role !== "ADMINISTRATOR") {
+  if (!canManageUsers(session.user.role as Role)) {
     redirect("/");
   }
 

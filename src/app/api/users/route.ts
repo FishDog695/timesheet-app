@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (session.user.role !== "ADMINISTRATOR") {
+  if (session.user.role !== "ADMINISTRATOR" && session.user.role !== "ACCOUNTING") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

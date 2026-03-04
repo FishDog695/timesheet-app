@@ -5,12 +5,13 @@ import { UserTable } from "@/components/admin/UserTable";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import type { Role } from "@/types";
+import { canManageUsers } from "@/lib/permissions";
 
 export default async function AdminPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  if (session.user.role !== "ADMINISTRATOR") {
+  if (!canManageUsers(session.user.role as Role)) {
     redirect("/");
   }
 

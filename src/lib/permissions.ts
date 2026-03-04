@@ -33,7 +33,7 @@ export function canCloseWeek(role: Role): boolean {
 }
 
 export function canManageUsers(role: Role): boolean {
-  return role === "ADMINISTRATOR";
+  return role === "ADMINISTRATOR" || role === "ACCOUNTING";
 }
 
 export function canViewRates(role: Role): boolean {

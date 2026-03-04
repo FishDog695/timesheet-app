@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { UserForm } from "@/components/admin/UserForm";
+import { canManageUsers } from "@/lib/permissions";
 import type { Role } from "@/types";
 
 interface PageProps {
@@ -12,7 +13,7 @@ export default async function EditUserPage({ params }: PageProps) {
   const session = await auth();
   if (!session) redirect("/login");
 
-  if (session.user.role !== "ADMINISTRATOR") {
+  if (!canManageUsers(session.user.role as Role)) {
     redirect("/");
   }
 

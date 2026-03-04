@@ -17,12 +17,6 @@ const adminPatchSchema = z.object({
   perDiemRate: z.number().min(0).optional(),
 });
 
-const accountingPatchSchema = z.object({
-  hourlyRate: z.number().min(0).optional(),
-  driveRate: z.number().min(0).optional(),
-  perDiemRate: z.number().min(0).optional(),
-});
-
 const selfPatchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
 });
@@ -38,7 +32,7 @@ export async function GET(
 
   const { userId } = params;
   const isSelf = session.user.id === userId;
-  const isAdmin = session.user.role === "ADMINISTRATOR";
+  const isAdmin = session.user.role === "ADMINISTRATOR" || session.user.role === "ACCOUNTING";
 
   if (!isSelf && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -83,7 +77,7 @@ export async function PATCH(
 
   let updateData: Record<string, unknown> = {};
 
-  if (callerRole === "ADMINISTRATOR") {
+  if (callerRole === "ADMINISTRATOR" || callerRole === "ACCOUNTING") {
     const parsed = adminPatchSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
@@ -96,15 +90,6 @@ export async function PATCH(
     if (password) {
       updateData.passwordHash = await bcrypt.hash(password, 12);
     }
-  } else if (callerRole === "ACCOUNTING") {
-    const parsed = accountingPatchSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
-        { status: 400 }
-      );
-    }
-    updateData = parsed.data;
   } else if (isSelf) {
     const parsed = selfPatchSchema.safeParse(body);
     if (!parsed.success) {
@@ -145,7 +130,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (session.user.role !== "ADMINISTRATOR") {
+  if (session.user.role !== "ADMINISTRATOR" && session.user.role !== "ACCOUNTING") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
