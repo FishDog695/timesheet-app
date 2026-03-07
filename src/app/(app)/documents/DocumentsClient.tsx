@@ -34,6 +34,7 @@ export function DocumentsClient({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,29 +78,44 @@ export function DocumentsClient({
     }
   };
 
+  const filteredDocuments = initialDocuments.filter((doc) =>
+    doc.originalName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
-      {canManage && (
-        <div className="flex items-center gap-3">
-          <Button
-            variant="primary"
-            onClick={() => fileInputRef.current?.click()}
-            loading={isUploading}
-          >
-            Upload Document
-          </Button>
+      <div className="flex items-center gap-3 flex-wrap">
+        {canManage && (
+          <>
+            <Button
+              variant="primary"
+              onClick={() => fileInputRef.current?.click()}
+              loading={isUploading}
+            >
+              Upload Document
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={handleUpload}
+            />
+            {uploadError && (
+              <span className="text-sm text-red-600">{uploadError}</span>
+            )}
+          </>
+        )}
+        {initialDocuments.length > 0 && (
           <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            className="hidden"
-            onChange={handleUpload}
+            type="search"
+            placeholder="Search documents…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
           />
-          {uploadError && (
-            <span className="text-sm text-red-600">{uploadError}</span>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {deleteError && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
@@ -110,6 +126,10 @@ export function DocumentsClient({
       {initialDocuments.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
           <p className="text-gray-500 text-sm">No documents uploaded yet.</p>
+        </div>
+      ) : filteredDocuments.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+          <p className="text-gray-500 text-sm">No documents match your search.</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -134,7 +154,7 @@ export function DocumentsClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {initialDocuments.map((doc) => (
+              {filteredDocuments.map((doc) => (
                 <tr key={doc.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-900 font-medium">
                     {doc.originalName}
