@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { TimesheetGrid } from "@/components/timesheet/TimesheetGrid";
 import { MobileEmployeeCard } from "@/components/timesheet/MobileEmployeeCard";
 import { Button } from "@/components/ui/Button";
-import { DAY_LABELS } from "@/lib/date-utils";
-import { calculateEmployeePayroll } from "@/lib/payroll";
+import { DAY_LABELS, formatWeekRange } from "@/lib/date-utils";
+import { calculateEmployeePayroll, PayrollResult } from "@/lib/payroll";
 import { PayrollTable } from "./PayrollTable";
 
 interface DayEntry {
@@ -153,6 +153,121 @@ export function AccountingWeekClient({
     URL.revokeObjectURL(url);
   };
 
+  const handlePrint = () => {
+    type RowData = { employee: Employee; result: PayrollResult };
+    const rows: RowData[] = employees
+      .map((emp) => {
+        const entries = initialEntries[emp.id] ?? [];
+        const result = calculateEmployeePayroll(entries, {
+          hourlyRate: emp.hourlyRate,
+          driveRate: emp.driveRate,
+          perDiemRate: emp.perDiemRate,
+        });
+        return { employee: emp, result };
+      })
+      .filter((r) => r.result.totalHours > 0);
+
+    const totals = rows.reduce(
+      (acc, { result: r }) => ({
+        totalRegHours: acc.totalRegHours + r.totalRegHours,
+        totalDriveHours: acc.totalDriveHours + r.totalDriveHours,
+        totalHours: acc.totalHours + r.totalHours,
+        overtimeHours: acc.overtimeHours + r.overtimeHours,
+        regularPay: acc.regularPay + r.regularPay,
+        drivePay: acc.drivePay + r.drivePay,
+        overtimePay: acc.overtimePay + r.overtimePay,
+        perDiemDays: acc.perDiemDays + r.perDiemDays,
+        perDiemTotal: acc.perDiemTotal + r.perDiemTotal,
+        totalGrossPay: acc.totalGrossPay + r.totalGrossPay,
+      }),
+      { totalRegHours: 0, totalDriveHours: 0, totalHours: 0, overtimeHours: 0,
+        regularPay: 0, drivePay: 0, overtimePay: 0, perDiemDays: 0,
+        perDiemTotal: 0, totalGrossPay: 0 }
+    );
+
+    const $ = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+    const h = (n: number) => n % 1 === 0 ? n.toFixed(0) : n.toFixed(2);
+    const ot = (n: number, fmt: (x: number) => string) =>
+      n > 0 ? `<span style="color:#ea580c;font-weight:600">${fmt(n)}</span>` : `<span style="color:#9ca3af">—</span>`;
+
+    const bodyRows = rows.map(({ employee: emp, result: r }) => `
+      <tr>
+        <td class="name">${emp.name}</td>
+        <td>${h(r.totalRegHours)}</td>
+        <td>${h(r.totalDriveHours)}</td>
+        <td class="bold">${h(r.totalHours)}</td>
+        <td>${ot(r.overtimeHours, h)}</td>
+        <td>${$(r.regularPay)}</td>
+        <td>${$(r.drivePay)}</td>
+        <td>${ot(r.overtimePay, $)}</td>
+        <td>${r.perDiemDays}</td>
+        <td>${$(r.perDiemTotal)}</td>
+        <td class="gross">${$(r.totalGrossPay)}</td>
+      </tr>`).join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payroll Report — ${formatWeekRange(weekId)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 24px; color: #111827; }
+    h1 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .subtitle { font-size: 12px; color: #6b7280; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { background: #f3f4f6; text-align: right; padding: 6px 8px; font-weight: 600; color: #374151;
+         border-bottom: 2px solid #d1d5db; white-space: nowrap; }
+    th:first-child { text-align: left; }
+    td { padding: 5px 8px; text-align: right; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+    td.name { text-align: left; font-weight: 500; }
+    td.bold { font-weight: 600; }
+    td.gross { background: #eff6ff; font-weight: 700; }
+    tfoot tr td { font-weight: 700; background: #f3f4f6; border-top: 2px solid #9ca3af; }
+    tfoot tr td.gross { background: #dbeafe; }
+    @media print { body { padding: 12px; } }
+  </style>
+</head>
+<body>
+  <h1>The Lightning Doctor LLC — Payroll Report</h1>
+  <p class="subtitle">Week of ${formatWeekRange(weekId)}</p>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:left">Employee</th>
+        <th>Reg Hrs</th><th>Drive Hrs</th><th>Total Hrs</th><th>OT Hrs</th>
+        <th>Reg Pay</th><th>Drive Pay</th><th>OT Pay</th>
+        <th>Per Diem Days</th><th>Per Diem</th><th>Gross Pay</th>
+      </tr>
+    </thead>
+    <tbody>${bodyRows}</tbody>
+    <tfoot>
+      <tr>
+        <td class="name">Totals</td>
+        <td>${h(totals.totalRegHours)}</td>
+        <td>${h(totals.totalDriveHours)}</td>
+        <td>${h(totals.totalHours)}</td>
+        <td>${ot(totals.overtimeHours, h)}</td>
+        <td>${$(totals.regularPay)}</td>
+        <td>${$(totals.drivePay)}</td>
+        <td>${ot(totals.overtimePay, $)}</td>
+        <td>${totals.perDiemDays}</td>
+        <td>${$(totals.perDiemTotal)}</td>
+        <td class="gross">${$(totals.totalGrossPay)}</td>
+      </tr>
+    </tfoot>
+  </table>
+  <script>window.onload = () => window.print();<\/script>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank", "width=1100,height=700");
+    if (!printWindow) return;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
   const handleToggleClose = () => {
     setActionError(null);
     startToggle(async () => {
@@ -231,7 +346,7 @@ export function AccountingWeekClient({
           <Button variant="secondary" onClick={handleExportPayroll}>
             Export Payroll CSV
           </Button>
-          <Button variant="secondary" onClick={() => window.print()}>
+          <Button variant="secondary" onClick={handlePrint}>
             Print Report
           </Button>
         </div>
