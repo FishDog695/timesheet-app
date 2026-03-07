@@ -33,10 +33,16 @@ export default async function AccountingWeekPage({ params }: PageProps) {
   const week = await prisma.week.findUnique({ where: { id: weekId } });
   const isClosed = week?.isClosed ?? false;
 
-  // Load all active users
+  // Load all active users (include rates for payroll calculation)
   const employees = await prisma.user.findMany({
     where: { isActive: true },
-    select: { id: true, name: true },
+    select: {
+      id: true,
+      name: true,
+      hourlyRate: true,
+      driveRate: true,
+      perDiemRate: true,
+    },
     orderBy: { name: "asc" },
   });
 
@@ -82,7 +88,13 @@ export default async function AccountingWeekPage({ params }: PageProps) {
       <AccountingWeekClient
         weekId={weekId}
         weekDays={weekDays.map((d) => d.toISOString())}
-        employees={employees}
+        employees={employees.map((e) => ({
+          id: e.id,
+          name: e.name,
+          hourlyRate: Number(e.hourlyRate),
+          driveRate: Number(e.driveRate),
+          perDiemRate: Number(e.perDiemRate),
+        }))}
         initialEntries={entriesMap}
         isClosed={isClosed}
       />

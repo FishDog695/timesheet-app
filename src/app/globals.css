@@ -7,3 +7,37 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+@media print {
+  /* Hide navigation, header, and action elements */
+  nav,
+  header,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  /* Clean white background */
+  body {
+    background: white !important;
+  }
+
+  /* Make the payroll table full width */
+  main,
+  .space-y-4 {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure table doesn't get clipped */
+  table {
+    width: 100% !important;
+    font-size: 11px !important;
+  }
+
+  th,
+  td {
+    padding: 4px 6px !important;
+  }
+}
