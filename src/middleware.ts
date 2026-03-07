@@ -5,7 +5,12 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Allow auth-related routes
-  if (pathname.startsWith("/api/auth") || pathname === "/login") {
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname === "/login" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password"
+  ) {
     return NextResponse.next();
   }
 

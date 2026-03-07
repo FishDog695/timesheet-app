@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const resetSuccess = searchParams.get("reset") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +45,12 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-gray-900">The Lightning Doctor LLC Employee Portal</h1>
           <p className="mt-2 text-gray-600 text-sm">Sign in to your account</p>
         </div>
+
+        {resetSuccess && (
+          <div className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md p-3 text-center">
+            Password reset successfully. You can now sign in with your new password.
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -79,6 +87,11 @@ export default function LoginPage() {
             >
               Sign in
             </Button>
+            <div className="text-sm text-center">
+              <Link href="/forgot-password" className="text-blue-600 hover:underline">
+                Forgot your password?
+              </Link>
+            </div>
           </form>
         </div>
       </div>
